@@ -1,0 +1,77 @@
+/* About.css */
+
+.aboutus-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #080808;
+  background-size: cover;
+  background-position: center;
+  color: #f3f3f3;
+  text-align: center;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1.mani {
+  font-size: 2.5em;
+  color: #ffffff;
+  margin-bottom: 20px;
+}
+
+section {
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+h2 {
+  font-size: 1.8em;
+  color: #00b894;
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  color: #dddddd;
+}
+
+ul {
+  list-style-type: disc;
+  margin-left: 20px;
+  padding-left: 10px;
+  text-decoration: none;
+}
+
+li {
+  margin-bottom: 8px;
+  color: #e0e0e0;
+  font-size: 1.05em;
+ list-style-type: none;
+  position: relative;
+}
+
+/* Highlighted card style for Goals and Priorities */
+.highlight-section {
+  background-color: #121212;
+  border: 1px solid #2c2c2c;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+  margin-bottom: 30px;
+  transition: transform 0.3s ease;
+}
+
+.highlight-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.highlight-section h2 {
+  color: #00b894;
+  text-transform: uppercase;
+  font-size: 1.5em;
+  margin-bottom: 15px;
+}

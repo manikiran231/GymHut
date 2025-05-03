@@ -1,0 +1,60 @@
+nav {
+  background-color: #333;
+  padding: 1rem;
+  
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 10px;
+  padding: 0 2rem; /* Adds space to both sides */
+}
+.logo {
+  font-size: 1.8rem;
+  color: white;
+  font-weight: bold;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-left: 1rem; /* Slightly shifts logo to the right */
+  text-decoration: none; /* Removes underline from logo */
+}
+
+.logo span {
+  color: #00ff99;
+}
+
+.logo span.highlight {
+  color: #00ff99; /* Highlight color for "Hut" */
+}
+
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 2rem; /* Adds more space between quick links */
+  margin-right: 1rem; /* Slightly shifts links to the left */
+}
+
+.nav-links li a {
+  color: white;
+  text-decoration: none;
+  position: relative; /* Needed for underline animation */
+  padding-bottom: 5px;
+  transition: color 0.3s ease;
+}
+
+.nav-links li a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #00ff99;
+  transition: width 0.3s ease;
+}
+
+.nav-links li a:hover::after {
+  width: 100%;
+}
