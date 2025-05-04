@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 
 // Allow requests from your frontend
-app.use(cors({ origin: 'https://gymhut-backend.onrender.com/' }));
+app.use(cors({ origin: 'https://gymhut.onrender.com' }));
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/build')));
