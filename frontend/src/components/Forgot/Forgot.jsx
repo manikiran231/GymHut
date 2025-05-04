@@ -14,7 +14,7 @@ function Forgot() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/forgot-password', { username });
+      const response = await axios.post('https://gymhut-backend.onrender.com/api/auth/forgot-password', { username });
       setMessage(response.data.message || 'Check your email for reset instructions.');
       toast.success("OTP sent to your email!");
         setTimeout(() => {

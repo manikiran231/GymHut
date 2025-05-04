@@ -26,7 +26,7 @@ function Register() {
     e.preventDefault();
   
     try {
-      const response = await axios.post("http://localhost:8000/register", {
+      const response = await axios.post("https://gymhut-backend.onrender.com/register", {
         name,
         email,
         phone,
