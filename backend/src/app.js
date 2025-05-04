@@ -6,43 +6,36 @@ const { MongoClient } = require("mongodb");
 const nodemailer = require('nodemailer');
 const { v4: uuidv4 } = require('uuid');
 
-
-// Load environment variables
 dotenv.config();
 
 console.log("✅ Loaded MONGODB_URI:", process.env.MONGODB_URI);
 
 const app = express();
-app.use(express.json());
-app.use(cors({
-    origin: ['http://localhost:5173'],
-    credentials: true
-}));
 const PORT = process.env.PORT || 8000;
 const MONGODB_URI = process.env.MONGODB_URI;
-
 
 if (!MONGODB_URI) {
     console.error("❌ MONGODB_URI is not defined. Check your .env file.");
     process.exit(1);
 }
 
-// ✅ Middleware: Allow JSON & Enable CORS
+app.use(express.json());
+
+// ✅ Corrected CORS setup (includes production + local origins)
 app.use(cors({
-    origin: ["http://localhost:5173", "http://localhost:8000"],
-    credentials: true,  // Allow cookies & auth headers
-    methods: ["GET", "POST", "PUT", "DELETE"], // Allow specific HTTP methods
+    origin: ['http://localhost:5173', 'https://gymhut.onrender.com'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json()); // Enable JSON request parsing
 
-let db; // Global variable to store DB connection
-
+let db;
 
 async function connectDB() {
     try {
-        const client = new MongoClient(MONGODB_URI); // Removed deprecated options
+        const client = new MongoClient(MONGODB_URI);
         await client.connect();
-        db = client.db(); // Store MongoDB instance
+        db = client.db();
         console.log("✅ Connected to MongoDB");
     } catch (err) {
         console.error("❌ MongoDB Connection Failed:", err);
@@ -50,14 +43,11 @@ async function connectDB() {
     }
 }
 
-// ✅ API Route Example
 app.get("/", (req, res) => {
     res.send("🚀 Server is running!");
 });
 
-
-
-//  Registration Route
+// Registration Route
 app.post("/register", async (req, res) => {
     try {
         const { name, email, phone, age, timePreference, username, password } = req.body;
@@ -67,28 +57,24 @@ app.post("/register", async (req, res) => {
         }
 
         const usersCollection = db.collection("users");
-        
         const existingEmailUser = await usersCollection.findOne({ email });
         const existingUsernameUser = await usersCollection.findOne({ username });
 
-        if (existingEmailUser && existingUsernameUser) {
+        if (existingEmailUser || existingUsernameUser) {
             return res.status(409).json({ error: "User already exists" });
         }
 
-        if (existingEmailUser) {
-            return res.status(409).json({ error: "Email already registered" });
-        }
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        if (existingUsernameUser) {
-            return res.status(409).json({ error: "Username already taken" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10); // 10 = salt rounds
-        
         const result = await usersCollection.insertOne({
-            name,email,phone,age,timePreference,username,password: hashedPassword
+            name,
+            email,
+            phone,
+            age,
+            timePreference,
+            username,
+            password: hashedPassword
         });
-
 
         res.status(201).json({ message: "User registered successfully", userId: result.insertedId });
     } catch (err) {
@@ -97,7 +83,7 @@ app.post("/register", async (req, res) => {
     }
 });
 
-//Login Route
+// Login Route
 app.post("/api/auth/login", async (req, res) => {
     const { username, password } = req.body;
 
@@ -126,20 +112,28 @@ app.post("/api/auth/login", async (req, res) => {
     }
 });
 
-
-// Forgot password route
+// Forgot Password Route
 app.post('/api/auth/forgot-password', async (req, res) => {
     const { username } = req.body;
     try {
         const user = await db.collection('users').findOne({ username });
-        if (!user) return res.status(400).json({ error: 'Useername not found' });
+        if (!user) return res.status(400).json({ error: 'Username not found' });
 
         const passcode = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+        const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
         await db.collection('users').updateOne(
             { username },
             { $set: { resetPasscode: passcode, otpExpiry: expiry } }
         );
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -148,14 +142,6 @@ app.post('/api/auth/forgot-password', async (req, res) => {
             text: `Your password reset code is: ${passcode}`
         };
 
-        // Nodemailer transporter (using Gmail with app password)
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER, // e.g., gymhut2000@gmail.com
-                pass: process.env.EMAIL_PASS  // app password (NOT regular password)
-            }
-        });
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.error(error);
@@ -170,8 +156,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     }
 });
 
-
-// Reset password route
+// Reset Password Route
 app.post('/api/auth/reset-password', async (req, res) => {
     const { username, passcode, newPassword } = req.body;
 
@@ -182,7 +167,6 @@ app.post('/api/auth/reset-password', async (req, res) => {
             return res.status(400).json({ error: 'Invalid username or passcode' });
         }
 
-        // Optional: If you store otpExpiry timestamp, check for expiration here
         if (user.otpExpiry && new Date(user.otpExpiry) < new Date()) {
             return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
         }
@@ -193,7 +177,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
             { username },
             {
                 $set: { password: hashedPassword },
-                $unset: { resetPasscode: "", otpExpiry: "" },
+                $unset: { resetPasscode: "", otpExpiry: "" }
             }
         );
 
@@ -204,9 +188,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
     }
 });
 
-
-
-// ✅ Start Server After Connecting to DB
+// ✅ Start server after DB connection
 connectDB().then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 Server running at http://localhost:${PORT}`);
