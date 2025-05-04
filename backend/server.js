@@ -3,16 +3,24 @@ const path = require('path');
 const cors = require('cors');
 const app = express();
 
-// Middleware to parse JSON
+// ✅ Proper CORS setup for Render frontend
+app.use(cors({
+  origin: 'https://gymhut.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// ✅ Handle preflight requests
+app.options('*', cors());
+
+// ✅ Middleware to parse JSON
 app.use(express.json());
 
-// Allow requests from your frontend
-app.use(cors({ origin: 'https://gymhut.onrender.com' }));
-
-// Serve static files from the React app
+// ✅ Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
-// API route for forgot password (example)
+// ✅ Example API route
 app.post('/api/auth/forgot-password', (req, res) => {
   const { email } = req.body;
   if (!email) {
@@ -22,12 +30,12 @@ app.post('/api/auth/forgot-password', (req, res) => {
   res.status(200).json({ message: 'Password reset link sent' });
 });
 
-// Catch-all handler to serve React app for unknown routes
+// ✅ Catch-all handler for React frontend
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
 });
 
-// Start the server
+// ✅ Start the server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
